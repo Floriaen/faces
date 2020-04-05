@@ -1,0 +1,9 @@
+<img id="face" src="http://localhost:3000/random.png" />
+<!--<input type="button" onclick='window.location.reload(false)' value="Rafraichir"/>-->
+<script type="text/javascript">
+    window.onload = function() {
+        document.getElementById("face").addEventListener("click", function() {
+            this.src = "http://localhost:3000/random.png" + "?" + new Date().getTime();
+        });
+    };
+</script>
