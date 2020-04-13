@@ -1,9 +1,11 @@
-<img id="face" src="http://localhost:3000/random.png" />
+<img id="face" src="http://localhost:3000/random/test" />
 <!--<input type="button" onclick='window.location.reload(false)' value="Rafraichir"/>-->
+<input id="name" type="text" />
 <script type="text/javascript">
     window.onload = function() {
-        document.getElementById("face").addEventListener("click", function() {
-            this.src = "http://localhost:3000/random.png" + "?" + new Date().getTime();
+        document.getElementById("name").addEventListener("keyup", function() {
+            let name = this.value;//this.value.length > 0 ? this.value : "test";
+            document.getElementById("face").src = "http://localhost:3000/random/" + this.value + "#" + new Date().getTime();;
         });
     };
 </script>
