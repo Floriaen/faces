@@ -1,0 +1,14 @@
+{
+    "Faces": {
+        "item": {
+            "size": {"width": 800, "height": 800},
+            "horizontalCount": 3,
+            "verticalCount": 4
+        },
+        "elements": [
+            {"directoryPath": "/data/images/faces-fanny/"},
+            {"directoryPath": "/data/images/faces-margaux/"},
+            {"directoryPath": "/data/images/faces-jeanne/"}
+        ]
+    }
+}

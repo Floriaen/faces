@@ -1,69 +1,80 @@
+// elements.element.item
+
+const config = require('config');
 const { createCanvas, loadImage } = require('canvas');
 const express = require('express');
-Math.seedrandom = require('seedrandom');
+const random = require('random');
+const seedrandom = require('seedrandom');
 const app = express();
 
+const IMAGE_WIDTH = 512;
+const IMAGE_HEIGHT = 512;
 
-const FANNY_FACES = '/data/images/faces-fanny/';
-const FLORIAN_FACES = '/data/images/faces-florian/';
-const MARGAUX_FACES = '/data/images/faces-margaux/';
-
-const FACES_X = 3;
-const FACES_Y = 4;
-
-const FACES_PATH = MARGAUX_FACES;
- 
 app.get('/', function(req, res, next) {
   res.sendFile(__dirname + '/index.html');
 });
 
 app.get('/random/:name', function (req, res) {
-  var seed = req.params.name.toLowerCase();
+  // setup random seed from name:
+  let seed = req.params.name.toLowerCase();
   seed += seed.length.toString();
-  Math.seedrandom(seed);
 
-  const canvas = createCanvas(512, 512);
+  random.use(seedrandom(seed));
+
+  const canvas = createCanvas(IMAGE_WIDTH, IMAGE_HEIGHT);
   const ctx = canvas.getContext('2d');
-   
-  let facesRelativePath = __dirname + FACES_PATH;
-  // Draw cat with lime helmet
-  loadImage(facesRelativePath + 'eyes.png').then((eyes) => {
-    loadImage(facesRelativePath + 'mouth.png').then((mouth) => {
-      loadImage(facesRelativePath + 'nose.png').then((nose) => {
-        loadImage(facesRelativePath + 'shape.png').then((shape) => {
-          let w = 800;
-          let h = 800;
 
-          // face shape
-          let w1 = Math.floor(Math.random() * FACES_X);
-          let h1 = Math.floor(Math.random() * FACES_Y);
-          ctx.drawImage(shape, w1 * w, h1 * h, w, h, 0, 0, 512, 512);
-          
-          // eyes
-          let w2 = Math.floor(Math.random() * FACES_X);
-          let h2 = Math.floor(Math.random() * FACES_Y);
-          ctx.drawImage(eyes, w2 * w, h2 * h, w, h, 0, 0, 512, 512);
+  let _item = config.get('Faces.item');
+  let w = _item.size.width;
+  let h = _item.size.height;
 
-          // mouth
-          let w3 = Math.floor(Math.random() * FACES_X);
-          let h3 = Math.floor(Math.random() * FACES_Y);
-          ctx.drawImage(mouth, w3 * w, h3 * h, w, h, 0, 0, 512, 512);
-  
-          // noise
-          let w4 = Math.floor(Math.random() * FACES_X);
-          let h4 = Math.floor(Math.random() * FACES_Y);
-          ctx.drawImage(nose, w4 * w, h4 * h, w, h, 0, 0, 512, 512);
-  
-          res.set('Content-Type', 'image/png');
-          res.send(canvas.toBuffer());
-        })
-      })
-    })
-  })
+  // get the resources and shuffle
+  let _elements = config.get('Faces.elements');
+  elements = createRandomArrayFromElements(4, _elements);
+
+  loadImage(__dirname + elements[0].directoryPath + 'shape.png')
+  .then(shape => {
+    let element = elements[1];
+    let rw = random.int(0, _item.horizontalCount - 1);
+    let rh = random.int(0, _item.verticalCount - 1);
+    ctx.drawImage(shape, rw * w, rh * h, w, h, 0, 0, IMAGE_WIDTH, IMAGE_HEIGHT);
     
+    return loadImage(__dirname + element.directoryPath + 'eyes.png');
+  })
+  .then(eyes => {
+    let element = elements[2];
+    let rw = random.int(0, _item.horizontalCount - 1);
+    let rh = random.int(0, _item.verticalCount - 1);
+    ctx.drawImage(eyes, rw * w, rh * h, w, h, 0, 0, IMAGE_WIDTH, IMAGE_HEIGHT);
+
+    return loadImage(__dirname + element.directoryPath + 'mouth.png');
+  })
+  .then(mouth => {
+    let element = elements[3];
+    let rw = random.int(0, _item.horizontalCount - 1);
+    let rh = random.int(0, _item.verticalCount - 1);
+    ctx.drawImage(mouth, rw * w, rh * h, w, h, 0, 0, IMAGE_WIDTH, IMAGE_HEIGHT);
+
+    return loadImage(__dirname + element.directoryPath + 'nose.png');
+  })
+  .then(nose => {
+    let rw = random.int(0, _item.horizontalCount - 1);
+    let rh = random.int(0, _item.verticalCount - 1);
+    ctx.drawImage(nose, rw * w, rh * h, w, h, 0, 0, IMAGE_WIDTH, IMAGE_HEIGHT);
+
+    res.set('Content-Type', 'image/png');
+    res.send(canvas.toBuffer());
+  }).catch(function(e) {
+    console.log(e);
+  });
+
 });
 app.listen(3000);
 
-function drawFaces() {
-
+function createRandomArrayFromElements(arrayLength, elements) {
+  var newElements = new Array(arrayLength);
+  for (let i = 0; i < arrayLength; i++) {
+    newElements[i] = (elements[random.int(0, elements.length - 1)]);
+  }
+  return newElements;
 }

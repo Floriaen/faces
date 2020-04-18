@@ -1,11 +1,57 @@
-<img id="face" src="http://localhost:3000/random/test" />
-<!--<input type="button" onclick='window.location.reload(false)' value="Rafraichir"/>-->
-<input id="name" type="text" />
-<script type="text/javascript">
-    window.onload = function() {
-        document.getElementById("name").addEventListener("keyup", function() {
-            let name = this.value;//this.value.length > 0 ? this.value : "test";
-            document.getElementById("face").src = "http://localhost:3000/random/" + this.value + "#" + new Date().getTime();;
-        });
-    };
-</script>
+<!doctype html>
+
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+
+        <title>Generated Faces</title>
+        <meta name="description" content="Generated faces">
+        <style type="text/css">
+            h1 {
+                text-align: center;
+            }
+
+            .face {
+                width: 512px;
+                height: 512px;
+                border: solid 1px gray;
+            }
+            #face {
+                display: none;
+            }
+            .element {
+                box-sizing: content-box;
+            }
+            .container {
+                display: block;
+                margin: 0 auto;
+                width: 512px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Generated Faces</h1>
+            <div class="element face">
+                <img id="face" src="" />
+            </div>
+            <div class="element">
+                <label for="name">Type a name:</label>
+                <input id="name" name="name" type="text" />
+            </div>
+        </div>
+        <script type="text/javascript">
+            window.onload = function() {
+                document.getElementById("name").addEventListener("keyup", function() {
+                    var name = this.value.trim();
+                    if (name.length == 0) {
+                        document.getElementById("face").style.display = 'none';
+                    } else {
+                        document.getElementById("face").src = "http://localhost:3000/random/" + name + "#" + new Date().getTime();;
+                        document.getElementById("face").style.display = 'block';
+                    }
+                });
+            };
+        </script>
+    </body>
+</html>
