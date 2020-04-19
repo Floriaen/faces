@@ -1,9 +1,11 @@
 {
-    "Faces": {
+    "Face": {
+        "size": {"width": 1024, "height": 1024},
         "item": {
             "size": {"width": 800, "height": 800},
             "horizontalCount": 3,
-            "verticalCount": 4
+            "verticalCount": 4,
+            "kindCount": 4
         },
         "elements": [
             {"directoryPath": "/data/images/faces-fanny/"},
