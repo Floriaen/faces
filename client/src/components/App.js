@@ -11,7 +11,7 @@ const styles = {
 
 const App = () => (
   <div style={styles.container}>
-    <InputFace faceUrl='http://localhost:3000/random/'></InputFace>
+    <InputFace faceUrl='http://localhost:3000/face/'></InputFace>
   </div>
 );
 

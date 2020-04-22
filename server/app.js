@@ -5,11 +5,7 @@ const { createCanvas, loadImage } = require('canvas');
 const express = require('express');
 const app = express();
 
-app.get('/', function(req, res, next) {
-  res.sendFile(__dirname + '/index.html');
-});
-
-app.get('/random/:name', function (req, res) {
+app.get('/face/:name', function (req, res) {
   // setup random seed from name:
   let seed = req.params.name.toLowerCase();
   seed += seed.length.toString();
