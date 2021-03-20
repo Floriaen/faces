@@ -1,3 +1,6 @@
+## dependencies
+- `npm install cross-env`
+
 ## Commands
 
 - `npm start` - start the dev server
