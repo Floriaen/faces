@@ -39,37 +39,61 @@ git clone <your-repo-url> .
 
 ### Setup Nginx reverse proxy:
 ```bash
-# Copy the nginx config
-sudo cp nginx-vps.conf /etc/nginx/sites-available/faces
+# Install nginx and certbot
+sudo apt update
+sudo apt install -y nginx certbot python3-certbot-nginx
+
+# Create initial nginx config (replace YOUR_DOMAIN with your actual domain)
+sudo tee /etc/nginx/sites-available/faces > /dev/null <<'EOF'
+server {
+    listen 80;
+    server_name YOUR_DOMAIN;
+
+    location / {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header Connection 'upgrade';
+        proxy_cache_bypass $http_upgrade;
+    }
+
+    location /api/ {
+        proxy_pass http://127.0.0.1:3000/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+    }
+}
+EOF
 
 # Enable the site
 sudo ln -s /etc/nginx/sites-available/faces /etc/nginx/sites-enabled/
 
-# Test nginx configuration
+# Test and reload nginx
 sudo nginx -t
-
-# Restart nginx
-sudo systemctl restart nginx
-```
-
-### Setup SSL with Let's Encrypt:
-```bash
-# Install certbot
-sudo apt update
-sudo apt install certbot python3-certbot-nginx
+sudo systemctl reload nginx
 
 # Get SSL certificate (make sure DNS points to your VPS first!)
-sudo certbot --nginx -d faces.upgradeyourskull.com
+# Replace YOUR_DOMAIN with your actual domain
+sudo certbot --nginx -d YOUR_DOMAIN
 
-# Certbot will automatically modify nginx config and setup auto-renewal
+# Certbot will automatically update the nginx config with SSL settings
+```
+
+### Setup passwordless sudo for deployment:
+```bash
+# Allow deployment user to run necessary commands without password
+# This is required for GitHub Actions to update nginx config automatically
+echo "$USER ALL=(ALL) NOPASSWD: /usr/bin/cp, /usr/sbin/nginx, /usr/bin/systemctl" | sudo tee /etc/sudoers.d/faces-deploy
+sudo chmod 440 /etc/sudoers.d/faces-deploy
 ```
 
 ### GitHub Secrets:
 Add these secrets in GitHub Settings → Secrets and variables → Actions:
 
-- `VPS_HOST` - Your VPS IP or domain (e.g., `faces.upgradeyourskull.com` or IP)
-- `VPS_USERNAME` - SSH username (e.g., `root` or `ubuntu`)
+- `VPS_HOST` - Your VPS IP or domain (e.g., `123.45.67.89`)
+- `VPS_USERNAME` - SSH username (e.g., `ubuntu` or your username)
 - `VPS_SSH_KEY` - Your private SSH key (the full content of `~/.ssh/id_rsa`)
+- `DOMAIN` - Your domain name (e.g., `faces.example.com`) - used in nginx config template
 
 ## Local Development
 
@@ -103,9 +127,10 @@ git push origin master
 GitHub Actions will automatically:
 1. SSH into your VPS
 2. Pull latest code
-3. Build Docker images
-4. Deploy containers
-5. Clean up old images
+3. Update nginx configuration (from template with your domain)
+4. Build Docker images
+5. Deploy containers
+6. Clean up old images
 
 ### Manual Deployment on VPS
 ```bash
@@ -125,8 +150,10 @@ docker compose up -d --build
   - Generates face images using canvas
 
 - **VPS Nginx**: Reverse proxy on port 80/443
-  - Routes `faces.upgradeyourskull.com` → Client container (port 8080)
+  - Routes your domain → Client container (port 8080)
+  - Routes `/api/*` → Server container (port 3000)
   - Handles SSL/TLS termination
+  - Config is auto-synced from `nginx-vps.conf` template on each deployment
 
 ## Monitoring
 
