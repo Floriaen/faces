@@ -36,7 +36,8 @@ jobs:
 
             # Update nginx config if changed
             echo "Syncing nginx configuration..."
-            sed 's/{{DOMAIN}}/${{ secrets.DOMAIN }}/g' nginx-vps.conf | sudo tee /etc/nginx/sites-available/faces > /dev/null
+            sed 's/{{DOMAIN}}/${{ secrets.DOMAIN }}/g' nginx-vps.conf > /tmp/faces-nginx.conf
+            sudo cp /tmp/faces-nginx.conf /etc/nginx/sites-available/faces
             sudo nginx -t && sudo systemctl reload nginx
 
             # Build and deploy containers
