@@ -9,9 +9,14 @@ const styles = {
   }
 };
 
+// Use /api/face/ in production (proxied by nginx), localhost:3000/face/ in dev
+const API_URL = process.env.NODE_ENV === 'production'
+  ? '/api/face/'
+  : 'http://localhost:3000/face/';
+
 const App = () => (
   <div style={styles.container}>
-    <InputFace faceUrl='http://localhost:3000/face/'></InputFace>
+    <InputFace faceUrl={API_URL}></InputFace>
   </div>
 );
 
