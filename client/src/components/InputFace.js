@@ -57,13 +57,14 @@ function InputFace(props) {
   const classes = useStyles(); // 
 
   const handleChange = (event) => {
+    const { faceUrl } = props;
     let {value} = event.target;
     if (value) {
       value = value.trim();
     }
     if (value !== imageSource) {
       if (value.length > 0) {
-        setImageSource(props.faceUrl + value);
+        setImageSource(faceUrl + value);
         setImageTitle(value);
       } else {
         setImageSource(undefined);
