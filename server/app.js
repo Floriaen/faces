@@ -122,7 +122,16 @@ app.get('/face/:name', function (req, res) {
   });
 });
 
-app.listen(3000);
+// Health check endpoint for Docker
+app.get('/face/health', function (req, res) {
+  res.status(200).send('OK');
+});
+
+const PORT = process.env.PORT || 3000;
+const HOST = process.env.HOST || '0.0.0.0';
+app.listen(PORT, HOST, () => {
+  console.log(`Server running on http://${HOST}:${PORT}`);
+});
 
 function createRandomArrayFromElements(arrayLength, elements) {
   var newElements = new Array(arrayLength);

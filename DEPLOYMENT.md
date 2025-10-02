@@ -1,0 +1,219 @@
+# Deployment Guide
+
+## Prerequisites
+
+### On your VPS (Ubuntu/Debian):
+```bash
+# Update package index
+sudo apt update
+
+# Install Docker and Docker Compose
+sudo apt install -y docker.io docker-compose
+
+# Add your user to docker group
+sudo usermod -aG docker $USER
+
+# Enable Docker to start on boot
+sudo systemctl enable docker
+sudo systemctl start docker
+
+# Log out and log back in for group changes to take effect
+```
+
+**Note:** If you get package conflicts because Docker is already installed manually, first remove it:
+```bash
+sudo apt remove docker docker-engine docker.io containerd runc
+sudo apt autoremove
+```
+
+### Setup project on VPS:
+```bash
+# Create directory
+sudo mkdir -p /opt/faces
+sudo chown $USER:$USER /opt/faces
+
+# Clone repository
+cd /opt/faces
+git clone <your-repo-url> .
+```
+
+### Setup Nginx reverse proxy:
+```bash
+# Copy the nginx config
+sudo cp nginx-vps.conf /etc/nginx/sites-available/faces
+
+# Enable the site
+sudo ln -s /etc/nginx/sites-available/faces /etc/nginx/sites-enabled/
+
+# Test nginx configuration
+sudo nginx -t
+
+# Restart nginx
+sudo systemctl restart nginx
+```
+
+### Setup SSL with Let's Encrypt:
+```bash
+# Install certbot
+sudo apt update
+sudo apt install certbot python3-certbot-nginx
+
+# Get SSL certificate (make sure DNS points to your VPS first!)
+sudo certbot --nginx -d faces.upgradeyourskull.com
+
+# Certbot will automatically modify nginx config and setup auto-renewal
+```
+
+### GitHub Secrets:
+Add these secrets in GitHub Settings → Secrets and variables → Actions:
+
+- `VPS_HOST` - Your VPS IP or domain (e.g., `faces.upgradeyourskull.com` or IP)
+- `VPS_USERNAME` - SSH username (e.g., `root` or `ubuntu`)
+- `VPS_SSH_KEY` - Your private SSH key (the full content of `~/.ssh/id_rsa`)
+
+## Local Development
+
+```bash
+# Simple development mode (no Docker)
+npm run dev
+
+# Or with Docker
+docker compose up
+
+# Rebuild after changes
+docker compose up --build
+
+# View logs
+docker compose logs -f
+
+# Stop services
+docker compose down
+```
+
+Access at: http://localhost:8080
+
+## Production Deployment
+
+### Automatic (via GitHub Actions) - RECOMMENDED
+Push to `master` branch or manually trigger the workflow:
+```bash
+git push origin master
+```
+
+GitHub Actions will automatically:
+1. SSH into your VPS
+2. Pull latest code
+3. Build Docker images
+4. Deploy containers
+5. Clean up old images
+
+### Manual Deployment on VPS
+```bash
+cd /opt/faces
+git pull origin master
+docker compose down
+docker compose up -d --build
+```
+
+## Architecture
+
+- **Client Container**: Nginx serving React app on port 8080
+  - Built static files served by nginx
+  - API requests proxied to server container
+
+- **Server Container**: Node.js Express API on port 3000
+  - Generates face images using canvas
+
+- **VPS Nginx**: Reverse proxy on port 80/443
+  - Routes `faces.upgradeyourskull.com` → Client container (port 8080)
+  - Handles SSL/TLS termination
+
+## Monitoring
+
+### Check service health:
+```bash
+docker compose ps
+docker compose logs -f client
+docker compose logs -f server
+```
+
+### Check nginx status:
+```bash
+sudo systemctl status nginx
+sudo nginx -t
+```
+
+### View nginx logs:
+```bash
+sudo tail -f /var/log/nginx/access.log
+sudo tail -f /var/log/nginx/error.log
+```
+
+## Troubleshooting
+
+### Containers won't start:
+```bash
+docker compose down
+docker compose up --build
+docker compose logs
+```
+
+### Nginx issues:
+```bash
+# Check nginx configuration
+sudo nginx -t
+
+# Restart nginx
+sudo systemctl restart nginx
+
+# Check if port 80/443 are in use
+sudo netstat -tulpn | grep :80
+sudo netstat -tulpn | grep :443
+```
+
+### SSL certificate issues:
+```bash
+# Renew certificate manually
+sudo certbot renew --dry-run
+
+# Check certificate status
+sudo certbot certificates
+```
+
+### Can't connect to containers:
+```bash
+# Check if containers are running
+docker compose ps
+
+# Check Docker network
+docker network ls
+docker network inspect faces_default
+```
+
+## Security Notes
+
+- ✅ Non-root containers
+- ✅ Security headers enabled
+- ✅ Health checks configured
+- ✅ SSL/TLS with Let's Encrypt
+- ⚠️ Configure firewall rules:
+  ```bash
+  sudo ufw allow 22/tcp   # SSH
+  sudo ufw allow 80/tcp   # HTTP
+  sudo ufw allow 443/tcp  # HTTPS
+  sudo ufw enable
+  ```
+
+## Updating
+
+To update the application:
+1. Push changes to master branch → GitHub Actions deploys automatically
+2. Or manually: `cd /opt/faces && git pull && docker compose up -d --build`
+
+## Cleanup
+
+Remove old Docker images to free space:
+```bash
+docker image prune -af
+docker system prune -af
+```
