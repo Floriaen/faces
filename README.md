@@ -1,7 +1,19 @@
-# README #
+# Faces App
 
-## Docker
+Random face generator with colorization.
 
-Run the service:
-- `docker-compose up`
-- Open your browser http://localhost
+## Quick Start
+
+### Local Development
+```bash
+npm run dev
+```
+Client will open at http://localhost:8080
+
+### Production
+See [DEPLOYMENT.md](DEPLOYMENT.md) for Docker deployment instructions.
+
+## Tech Stack
+- **Frontend**: React + Webpack + Material-UI
+- **Backend**: Node.js + Express + Canvas
+- **Deployment**: Docker + GitHub Actions

@@ -1,0 +1,8 @@
+{
+  "name": "faces-monorepo",
+  "private": true,
+  "scripts": {
+    "dev": "npm install --prefix server && npm install --legacy-peer-deps --prefix client && npm run start:all",
+    "start:all": "npm start --prefix server & npm start --prefix client"
+  }
+}
