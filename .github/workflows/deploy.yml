@@ -26,6 +26,10 @@ jobs:
             # Navigate to project directory
             cd /opt/faces
 
+            # Clean untracked files that might conflict
+            echo "Cleaning untracked files..."
+            git clean -fd
+
             # Pull latest code
             echo "Pulling latest changes..."
             git pull origin master
