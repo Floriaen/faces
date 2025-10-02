@@ -2,6 +2,8 @@
 
 Random face generator with colorization.
 
+![Homepage](homepage.png)
+
 ## Quick Start
 
 ### Local Development
